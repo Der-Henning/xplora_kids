@@ -114,7 +114,7 @@ class XploraKidsOptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self._config_entry = config_entry
         self._mac_fields: dict[str, str] = {}
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> config_entries.FlowResult:
@@ -126,7 +126,7 @@ class XploraKidsOptionsFlow(config_entries.OptionsFlow):
             if not errors:
                 return self.async_create_entry(title="", data=options)
 
-        options = self.config_entry.options
+        options = self._config_entry.options
         return self.async_show_form(
             step_id="init",
             data_schema=self._options_schema(options, user_input),
@@ -180,7 +180,7 @@ class XploraKidsOptionsFlow(config_entries.OptionsFlow):
     def _parse_options(self, user_input: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
         """Parse and validate options form input."""
         if not self._mac_fields:
-            self._options_schema(self.config_entry.options, None)
+            self._options_schema(self._config_entry.options, None)
 
         errors: dict[str, str] = {}
         watch_macs: dict[str, str] = {}
@@ -206,7 +206,7 @@ class XploraKidsOptionsFlow(config_entries.OptionsFlow):
 
     def _watch_names(self) -> dict[str, str]:
         """Return configured watches keyed by Xplora watch id."""
-        entry_data = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id, {})
+        entry_data = self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id, {})
         coordinator = entry_data.get(DATA_COORDINATOR)
         if coordinator is None:
             return {}
