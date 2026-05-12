@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -42,10 +40,6 @@ class XploraKidsEntity(CoordinatorEntity[XploraKidsDataUpdateCoordinator]):
             name=self.watch.name,
         )
 
-    def _base_attributes(self) -> dict[str, Any]:
+    def _base_attributes(self) -> dict[str, str]:
         """Return common entity attributes."""
-        return {
-            "watch_id": self.watch.id,
-            "phone_number": self.watch.phone_number,
-            "user_id": self.watch.user_id,
-        }
+        return {"watch_id": self.watch.id}

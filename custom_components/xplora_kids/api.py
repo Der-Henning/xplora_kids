@@ -11,7 +11,6 @@ import logging
 import math
 from time import time
 from typing import Any
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiohttp
 
@@ -112,26 +111,6 @@ query WatchLastLocate($uid: String!) {
 }
 """
 
-USER_STEPS_QUERY = """
-query UserSteps($uid: String!, $tz: String, $date: Int!) {
-  userSteps(uid: $uid, tz: $tz, date: $date) {
-    day
-    monthSteps {
-      key
-      step
-    }
-    daySteps {
-      key
-      step
-    }
-    timeSteps {
-      key
-      step
-    }
-  }
-}
-"""
-
 
 @dataclass(slots=True, frozen=True)
 class XploraWatch:
@@ -158,11 +137,16 @@ class XploraWatchSnapshot:
     locate_type: str | None
     address: str | None
     poi: str | None
+    city: str | None
+    province: str | None
+    country: str | None
+    country_abbr: str | None
     is_in_safe_zone: bool | None
+    safe_zone_label: str | None
+    is_adjusted: bool | None
     steps: int | None
-    step_date: str | None
+    distance: int | None
     raw: dict[str, Any]
-    raw_steps: dict[str, Any]
 
 
 class XploraApiError(Exception):
@@ -293,15 +277,6 @@ class XploraApi:
             "WatchLastLocate",
         )
         location = result.get("data", {}).get("watchLastLocate") or {}
-        raw_steps: dict[str, Any] = {}
-        steps = None
-        step_date = None
-
-        try:
-            raw_steps, step_date = await self.async_get_watch_steps(watch.id)
-            steps = _step_count(raw_steps)
-        except XploraApiError as err:
-            _LOGGER.debug("Could not fetch step count for %s: %s", watch.id, err)
 
         return XploraWatchSnapshot(
             watch=watch,
@@ -321,26 +296,17 @@ class XploraApi:
                 location.get("country"),
             ),
             poi=_as_str(location.get("poi")),
+            city=_as_str(location.get("city")),
+            province=_as_str(location.get("province")),
+            country=_as_str(location.get("country")),
+            country_abbr=_as_str(location.get("countryAbbr")),
             is_in_safe_zone=_as_bool(location.get("isInSafeZone")),
-            steps=steps,
-            step_date=step_date,
+            safe_zone_label=_as_str(location.get("safeZoneLabel")),
+            is_adjusted=_as_bool(location.get("isAdjusted")),
+            steps=_as_int(location.get("step")),
+            distance=_as_int(location.get("distance")),
             raw=location,
-            raw_steps=raw_steps,
         )
-
-    async def async_get_watch_steps(self, watch_id: str) -> tuple[dict[str, Any], str]:
-        """Fetch today's step data for a watch."""
-        date_epoch, step_date = _start_of_day(self._time_zone)
-        result = await self._graphql(
-            USER_STEPS_QUERY,
-            {
-                "uid": watch_id,
-                "tz": self._time_zone,
-                "date": date_epoch,
-            },
-            "UserSteps",
-        )
-        return result.get("data", {}).get("userSteps") or {}, step_date
 
     async def _graphql(
         self,
@@ -450,40 +416,6 @@ def _graphql_error_message(errors: list[Mapping[str, Any]]) -> str:
     return "; ".join(message for message in messages if message) or "Unknown Xplora API error."
 
 
-def _start_of_day(time_zone: str) -> tuple[int, str]:
-    """Return start-of-day epoch and date string for a timezone."""
-    try:
-        tz = ZoneInfo(time_zone)
-    except ZoneInfoNotFoundError:
-        tz = timezone.utc
-    start = datetime.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)
-    return int(start.timestamp()), start.date().isoformat()
-
-
-def _step_count(user_steps: Mapping[str, Any]) -> int | None:
-    """Extract today's step count from Xplora's userSteps payload."""
-    for key in ("day", "step", "steps", "totalStep"):
-        value = _as_int(user_steps.get(key))
-        if value is not None:
-            return value
-
-    for key in ("daySteps", "timeSteps"):
-        items = user_steps.get(key)
-        if not isinstance(items, list):
-            continue
-        steps = [
-            value
-            for item in items
-            if isinstance(item, Mapping)
-            for value in [_as_int(item.get("step"))]
-            if value is not None
-        ]
-        if steps:
-            return sum(steps)
-
-    return None
-
-
 def _as_bool(value: Any) -> bool | None:
     """Convert API booleans while preserving missing values."""
     if value is None:
@@ -528,9 +460,10 @@ def _as_int(value: Any) -> int | None:
     if value in (None, ""):
         return None
     try:
-        return int(float(value))
+        number = int(float(value))
     except (TypeError, ValueError):
         return None
+    return number if number >= 0 else None
 
 
 def _as_str(value: Any) -> str | None:

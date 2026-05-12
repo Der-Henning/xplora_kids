@@ -1,12 +1,13 @@
 {
   "domain": "xplora_kids",
   "name": "Xplora Kids",
-  "codeowners": [],
+  "codeowners": ["@Der-Henning"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/Ludy87/pyxplora_api",
+  "documentation": "https://github.com/Der-Henning/xplora_kids",
   "integration_type": "device",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Der-Henning/xplora_kids/issues",
   "requirements": [],
   "version": "0.1.0"
 }
