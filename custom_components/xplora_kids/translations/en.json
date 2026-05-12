@@ -1,0 +1,49 @@
+{
+  "title": "Xplora Kids",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Xplora Kids",
+        "description": "Sign in with your Xplora parent account. Use either email, or country code plus phone number.",
+        "data": {
+          "email": "Email",
+          "country_code": "Country code",
+          "phone_number": "Phone number",
+          "password": "Password",
+          "user_language": "User language",
+          "time_zone": "Time zone"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Xplora Kids",
+        "description": "Update the password for your Xplora parent account.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to Xplora.",
+      "invalid_auth": "Xplora rejected the credentials.",
+      "missing_auth": "Enter either an email address, or a country code plus phone number.",
+      "no_watches": "No child watches were found on this Xplora account.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This Xplora account is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Xplora Kids Options",
+        "data": {
+          "scan_interval": "Polling interval in seconds",
+          "request_location": "Ask watches for a fresh location on every poll"
+        },
+        "description": "The default polling interval is intentionally gentle. Enabling fresh location requests may use more watch battery and more Xplora API calls."
+      }
+    }
+  }
+}

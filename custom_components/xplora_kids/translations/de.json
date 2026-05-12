@@ -1,0 +1,49 @@
+{
+  "title": "Xplora Kids",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Xplora Kids",
+        "description": "Melde dich mit deinem Xplora-Elternkonto an. Verwende entweder eine E-Mail-Adresse oder Laendercode plus Telefonnummer.",
+        "data": {
+          "email": "E-Mail",
+          "country_code": "Laendercode",
+          "phone_number": "Telefonnummer",
+          "password": "Passwort",
+          "user_language": "Benutzersprache",
+          "time_zone": "Zeitzone"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Xplora Kids erneut authentifizieren",
+        "description": "Aktualisiere das Passwort fuer dein Xplora-Elternkonto.",
+        "data": {
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zu Xplora fehlgeschlagen.",
+      "invalid_auth": "Xplora hat die Zugangsdaten abgelehnt.",
+      "missing_auth": "Gib entweder eine E-Mail-Adresse oder Laendercode plus Telefonnummer ein.",
+      "no_watches": "In diesem Xplora-Konto wurden keine Kinderuhren gefunden.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Dieses Xplora-Konto ist bereits eingerichtet.",
+      "reauth_successful": "Die erneute Authentifizierung war erfolgreich."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Xplora Kids Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall in Sekunden",
+          "request_location": "Uhren bei jeder Abfrage nach einem frischen Standort fragen"
+        },
+        "description": "Das Standard-Abfrageintervall ist bewusst schonend. Wenn frische Standortabfragen aktiviert sind, koennen Akkuverbrauch der Uhr und Xplora-API-Nutzung steigen."
+      }
+    }
+  }
+}
