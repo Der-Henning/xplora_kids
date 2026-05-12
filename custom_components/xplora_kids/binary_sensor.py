@@ -42,9 +42,8 @@ async def async_setup_entry(
 class XploraChargingBinarySensor(XploraKidsEntity, BinarySensorEntity):
     """Charging status for a watch."""
 
-    _attr_name = "Charging"
     _attr_icon = "mdi:battery-charging"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "charging"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the charging binary sensor."""
@@ -67,9 +66,8 @@ class XploraChargingBinarySensor(XploraKidsEntity, BinarySensorEntity):
 class XploraSafeZoneBinarySensor(XploraKidsEntity, BinarySensorEntity):
     """Safe-zone status for a watch."""
 
-    _attr_name = "In Safe Zone"
     _attr_icon = "mdi:shield-home"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "in_safe_zone"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the safe-zone binary sensor."""
@@ -93,9 +91,9 @@ class XploraSafeZoneBinarySensor(XploraKidsEntity, BinarySensorEntity):
 class XploraAdjustedLocationBinarySensor(XploraKidsEntity, BinarySensorEntity):
     """Adjusted-location status for a watch."""
 
-    _attr_name = "Adjusted Location"
     _attr_icon = "mdi:map-marker-check"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "adjusted_location"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the adjusted-location binary sensor."""

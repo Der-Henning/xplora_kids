@@ -40,9 +40,54 @@
         "title": "Xplora Kids Options",
         "data": {
           "scan_interval": "Polling interval in seconds",
-          "request_location": "Ask watches for a fresh location on every poll"
+          "request_location": "Ask watches for a fresh location on every poll",
+          "location_request_cooldown": "Location refresh cooldown in seconds"
         },
-        "description": "The default polling interval is intentionally gentle. Enabling fresh location requests may use more watch battery and more Xplora API calls."
+        "description": "The default polling interval is intentionally gentle. Enabling fresh location requests may use more watch battery and more Xplora API calls. The cooldown applies to both the button and automatic fresh location requests. Optional MAC address fields can be used to merge Xplora devices with devices from router integrations such as FRITZ!Box Tools."
+      }
+    },
+    "error": {
+      "invalid_mac": "Enter a valid MAC address, for example AA:BB:CC:DD:EE:FF."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "steps": {
+        "name": "Steps"
+      },
+      "location_accuracy": {
+        "name": "Location accuracy"
+      },
+      "distance": {
+        "name": "Distance"
+      },
+      "locate_type": {
+        "name": "Locate type"
+      },
+      "safe_zone": {
+        "name": "Safe zone"
+      },
+      "last_seen": {
+        "name": "Last seen"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Charging"
+      },
+      "in_safe_zone": {
+        "name": "In safe zone"
+      },
+      "adjusted_location": {
+        "name": "Adjusted location"
+      }
+    },
+    "button": {
+      "request_location": {
+        "name": "Request location"
       }
     }
   }

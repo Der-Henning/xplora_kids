@@ -11,7 +11,14 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import XploraApi, XploraApiError, XploraAuthenticationError, XploraWatchSnapshot
-from .const import CONF_REQUEST_LOCATION, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    CONF_LOCATION_REQUEST_COOLDOWN,
+    CONF_REQUEST_LOCATION,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_LOCATION_REQUEST_COOLDOWN,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +43,11 @@ class XploraKidsDataUpdateCoordinator(DataUpdateCoordinator[dict[str, XploraWatc
         """Fetch data from Xplora."""
         try:
             return await self.api.async_update_watches(
-                request_location=self.entry.options.get(CONF_REQUEST_LOCATION, False)
+                request_location=self.entry.options.get(CONF_REQUEST_LOCATION, False),
+                location_request_cooldown=self.entry.options.get(
+                    CONF_LOCATION_REQUEST_COOLDOWN,
+                    DEFAULT_LOCATION_REQUEST_COOLDOWN,
+                ),
             )
         except XploraAuthenticationError as err:
             raise ConfigEntryAuthFailed(str(err)) from err

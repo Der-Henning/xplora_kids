@@ -11,8 +11,17 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .api import XploraApiError, XploraAuthenticationError
-from .const import DATA_COORDINATOR, DOMAIN
+from .api import (
+    XploraApiError,
+    XploraAuthenticationError,
+    XploraLocationRequestThrottled,
+)
+from .const import (
+    CONF_LOCATION_REQUEST_COOLDOWN,
+    DATA_COORDINATOR,
+    DEFAULT_LOCATION_REQUEST_COOLDOWN,
+    DOMAIN,
+)
 from .coordinator import XploraKidsDataUpdateCoordinator
 from .entity import XploraKidsEntity
 
@@ -33,9 +42,9 @@ async def async_setup_entry(
 class XploraRequestLocationButton(XploraKidsEntity, ButtonEntity):
     """Button to ask a watch for a fresh location."""
 
-    _attr_name = "Request Location"
     _attr_icon = "mdi:crosshairs-gps"
     _attr_entity_category = EntityCategory.CONFIG
+    _attr_translation_key = "request_location"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the request-location button."""
@@ -43,8 +52,17 @@ class XploraRequestLocationButton(XploraKidsEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Request a fresh watch location and refresh Home Assistant data."""
+        cooldown = self.coordinator.entry.options.get(
+            CONF_LOCATION_REQUEST_COOLDOWN,
+            DEFAULT_LOCATION_REQUEST_COOLDOWN,
+        )
         try:
-            requested = await self.coordinator.api.async_request_watch_location(self.watch.id)
+            requested = await self.coordinator.api.async_request_watch_location(
+                self.watch.id,
+                cooldown=cooldown,
+            )
+        except XploraLocationRequestThrottled as err:
+            raise HomeAssistantError(str(err)) from err
         except XploraAuthenticationError as err:
             raise HomeAssistantError("Xplora authentication failed while requesting location.") from err
         except XploraApiError as err:

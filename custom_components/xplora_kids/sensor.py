@@ -58,11 +58,10 @@ async def async_setup_entry(
 class XploraBatterySensor(XploraKidsEntity, SensorEntity):
     """Battery level sensor for a watch."""
 
-    _attr_name = "Battery"
     _attr_device_class = SensorDeviceClass.BATTERY
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_translation_key = "battery"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the battery sensor."""
@@ -94,11 +93,10 @@ class XploraBatterySensor(XploraKidsEntity, SensorEntity):
 class XploraStepSensor(XploraKidsEntity, SensorEntity):
     """Step counter sensor from the latest watch location payload."""
 
-    _attr_name = "Steps"
     _attr_icon = "mdi:shoe-print"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = "steps"
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_translation_key = "steps"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the step sensor."""
@@ -129,12 +127,12 @@ class XploraStepSensor(XploraKidsEntity, SensorEntity):
 class XploraLocationAccuracySensor(XploraKidsEntity, SensorEntity):
     """Location accuracy sensor for a watch."""
 
-    _attr_name = "Location Accuracy"
     _attr_icon = "mdi:crosshairs-gps"
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = UnitOfLength.METERS
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_translation_key = "location_accuracy"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the location accuracy sensor."""
@@ -149,12 +147,12 @@ class XploraLocationAccuracySensor(XploraKidsEntity, SensorEntity):
 class XploraWatchDistanceSensor(XploraKidsEntity, SensorEntity):
     """Distance value from the latest watch location payload."""
 
-    _attr_name = "Distance"
     _attr_icon = "mdi:map-marker-distance"
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = UnitOfLength.METERS
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_translation_key = "distance"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the distance sensor."""
@@ -178,9 +176,9 @@ class XploraWatchDistanceSensor(XploraKidsEntity, SensorEntity):
 class XploraLocateTypeSensor(XploraKidsEntity, SensorEntity):
     """Locate type sensor for a watch."""
 
-    _attr_name = "Locate Type"
     _attr_icon = "mdi:map-search"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "locate_type"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the locate type sensor."""
@@ -195,9 +193,8 @@ class XploraLocateTypeSensor(XploraKidsEntity, SensorEntity):
 class XploraSafeZoneLabelSensor(XploraKidsEntity, SensorEntity):
     """Safe zone label sensor for a watch."""
 
-    _attr_name = "Safe Zone"
     _attr_icon = "mdi:shield-home"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "safe_zone"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the safe zone label sensor."""
@@ -228,10 +225,9 @@ class XploraSafeZoneLabelSensor(XploraKidsEntity, SensorEntity):
 class XploraLastSeenSensor(XploraKidsEntity, SensorEntity):
     """Last seen timestamp sensor for a watch."""
 
-    _attr_name = "Last Seen"
     _attr_icon = "mdi:clock-outline"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "last_seen"
 
     def __init__(self, coordinator: XploraKidsDataUpdateCoordinator, watch) -> None:
         """Initialize the last seen sensor."""

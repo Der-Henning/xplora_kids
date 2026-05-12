@@ -40,9 +40,54 @@
         "title": "Xplora Kids Optionen",
         "data": {
           "scan_interval": "Abfrageintervall in Sekunden",
-          "request_location": "Uhren bei jeder Abfrage nach einem frischen Standort fragen"
+          "request_location": "Uhren bei jeder Abfrage nach einem frischen Standort fragen",
+          "location_request_cooldown": "Abklingzeit fuer Standortabfragen in Sekunden"
         },
-        "description": "Das Standard-Abfrageintervall ist bewusst schonend. Wenn frische Standortabfragen aktiviert sind, koennen Akkuverbrauch der Uhr und Xplora-API-Nutzung steigen."
+        "description": "Das Standard-Abfrageintervall ist bewusst schonend. Wenn frische Standortabfragen aktiviert sind, koennen Akkuverbrauch der Uhr und Xplora-API-Nutzung steigen. Die Abklingzeit gilt fuer die Schaltflaeche und automatische frische Standortabfragen. Optionale MAC-Adressfelder koennen verwendet werden, um Xplora-Geraete mit Geraeten aus Router-Integrationen wie FRITZ!Box Tools zusammenzufuehren."
+      }
+    },
+    "error": {
+      "invalid_mac": "Gib eine gueltige MAC-Adresse ein, zum Beispiel AA:BB:CC:DD:EE:FF."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Akku"
+      },
+      "steps": {
+        "name": "Schritte"
+      },
+      "location_accuracy": {
+        "name": "Standortgenauigkeit"
+      },
+      "distance": {
+        "name": "Entfernung"
+      },
+      "locate_type": {
+        "name": "Ortungsart"
+      },
+      "safe_zone": {
+        "name": "Sicherheitszone"
+      },
+      "last_seen": {
+        "name": "Zuletzt gesehen"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Laedt"
+      },
+      "in_safe_zone": {
+        "name": "In Sicherheitszone"
+      },
+      "adjusted_location": {
+        "name": "Angepasster Standort"
+      }
+    },
+    "button": {
+      "request_location": {
+        "name": "Standort anfragen"
       }
     }
   }

@@ -24,6 +24,7 @@ DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.3"
 )
+FAILED_LOCATION_REQUEST_BACKOFF = 300
 
 SIGN_IN_MUTATION = """
 mutation signInWithEmailOrPhone(
@@ -157,6 +158,17 @@ class XploraAuthenticationError(XploraApiError):
     """Raised when Xplora rejects the configured credentials."""
 
 
+class XploraLocationRequestThrottled(XploraApiError):
+    """Raised when a location refresh request is currently throttled."""
+
+    def __init__(self, retry_after: int) -> None:
+        """Initialize the throttled error."""
+        self.retry_after = retry_after
+        super().__init__(
+            f"Location refresh was requested too recently. Try again in {retry_after} seconds."
+        )
+
+
 class XploraApi:
     """Small Xplora GraphQL API wrapper.
 
@@ -193,11 +205,30 @@ class XploraApi:
         self.account_id: str | None = None
         self.account_name: str | None = None
         self.watches: list[XploraWatch] = []
+        self._last_snapshots: dict[str, XploraWatchSnapshot] = {}
+        self._watch_errors: dict[str, str] = {}
+        self._last_location_request_at: dict[str, float] = {}
+        self._location_request_backoff_until: dict[str, float] = {}
 
     @property
     def watch_by_id(self) -> dict[str, XploraWatch]:
         """Return watches keyed by Xplora user id."""
         return {watch.id: watch for watch in self.watches}
+
+    @property
+    def watch_errors(self) -> Mapping[str, str]:
+        """Return update errors keyed by watch id."""
+        return self._watch_errors.copy()
+
+    @property
+    def location_request_cooldowns(self) -> Mapping[str, int]:
+        """Return remaining location request cooldowns keyed by watch id."""
+        now = time()
+        cooldowns: dict[str, int] = {}
+        for watch_id, blocked_until in self._location_request_backoff_until.items():
+            if blocked_until > now:
+                cooldowns[watch_id] = math.ceil(blocked_until - now)
+        return cooldowns
 
     async def async_login(self, *, force: bool = False) -> None:
         """Log in if needed and cache the account watch list."""
@@ -243,31 +274,75 @@ class XploraApi:
         await self.async_login(force=True)
         return self.watches
 
-    async def async_update_watches(self, *, request_location: bool = False) -> dict[str, XploraWatchSnapshot]:
+    async def async_update_watches(
+        self,
+        *,
+        request_location: bool = False,
+        location_request_cooldown: int = 0,
+    ) -> dict[str, XploraWatchSnapshot]:
         """Fetch latest telemetry for all watches on the account."""
         await self.async_login()
 
         snapshots: dict[str, XploraWatchSnapshot] = {}
+        errors: dict[str, XploraApiError] = {}
         for watch in self.watches:
             if request_location:
                 try:
-                    await self.async_request_watch_location(watch.id)
+                    await self.async_request_watch_location(
+                        watch.id,
+                        cooldown=location_request_cooldown,
+                    )
                     await asyncio.sleep(1)
+                except XploraLocationRequestThrottled as err:
+                    _LOGGER.debug(
+                        "Skipping live location request for %s for another %s seconds",
+                        watch.id,
+                        err.retry_after,
+                    )
                 except XploraApiError as err:
                     _LOGGER.debug("Could not request live location for %s: %s", watch.id, err)
 
-            snapshots[watch.id] = await self.async_get_watch_snapshot(watch)
+            try:
+                snapshot = await self.async_get_watch_snapshot(watch)
+            except XploraAuthenticationError:
+                raise
+            except XploraApiError as err:
+                errors[watch.id] = err
+                self._watch_errors[watch.id] = str(err)
+                if watch.id in self._last_snapshots:
+                    snapshots[watch.id] = self._last_snapshots[watch.id]
+                _LOGGER.debug("Could not update Xplora watch %s: %s", watch.id, err)
+                continue
 
+            snapshots[watch.id] = snapshot
+            self._last_snapshots[watch.id] = snapshot
+            self._watch_errors.pop(watch.id, None)
+
+        if not snapshots and errors:
+            message = "; ".join(f"{watch_id}: {error}" for watch_id, error in errors.items())
+            raise XploraApiError(f"Could not update any Xplora watch: {message}")
         return snapshots
 
-    async def async_request_watch_location(self, watch_id: str) -> bool:
+    async def async_request_watch_location(self, watch_id: str, *, cooldown: int = 0) -> bool:
         """Ask a watch to refresh its own location."""
-        result = await self._graphql(
-            ASK_WATCH_LOCATE_QUERY,
-            {"uid": watch_id},
-            "AskWatchLocate",
-        )
-        return bool(result.get("data", {}).get("askWatchLocate"))
+        self._raise_if_location_request_blocked(watch_id, cooldown)
+        try:
+            result = await self._graphql(
+                ASK_WATCH_LOCATE_QUERY,
+                {"uid": watch_id},
+                "AskWatchLocate",
+            )
+        except XploraAuthenticationError:
+            raise
+        except XploraApiError:
+            self._location_request_backoff_until[watch_id] = time() + FAILED_LOCATION_REQUEST_BACKOFF
+            raise
+
+        requested = bool(result.get("data", {}).get("askWatchLocate"))
+        if requested:
+            self._last_location_request_at[watch_id] = time()
+            self._location_request_backoff_until.pop(watch_id, None)
+        return requested
 
     async def async_get_watch_snapshot(self, watch: XploraWatch) -> XploraWatchSnapshot:
         """Fetch the last known location payload for a watch."""
@@ -382,6 +457,20 @@ class XploraApi:
         if self._token_expires_at is None:
             return False
         return self._token_expires_at <= time() + 60
+
+    def _raise_if_location_request_blocked(self, watch_id: str, cooldown: int) -> None:
+        """Raise if a location request should be throttled."""
+        now = time()
+        blocked_until = self._location_request_backoff_until.get(watch_id, 0)
+
+        if cooldown > 0 and watch_id in self._last_location_request_at:
+            blocked_until = max(
+                blocked_until,
+                self._last_location_request_at[watch_id] + cooldown,
+            )
+
+        if blocked_until > now:
+            raise XploraLocationRequestThrottled(math.ceil(blocked_until - now))
 
 
 def _parse_watches(user: Mapping[str, Any]) -> list[XploraWatch]:
