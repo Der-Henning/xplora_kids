@@ -16,8 +16,10 @@ import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
-API_KEY = "fc45d50304511edbf67a12b93c413b6a"
-API_SECRET = "1e9b6fe0327711ed959359c157878dcb"
+# Public app/client credentials used by Xplora's own API flow for the initial
+# open authorization header. These are not the user's account credentials.
+XPLORA_CLIENT_TOKEN = "fc45d50304511edbf67a12b93c413b6a"
+XPLORA_CLIENT_SECRET = "1e9b6fe0327711ed959359c157878dcb"
 ENDPOINT = "https://api.myxplora.com/api"
 DEFAULT_TIMEOUT = 60
 DEFAULT_USER_AGENT = (
@@ -196,8 +198,8 @@ class XploraApi:
         self._country_code = country_code
         self._phone_number = phone_number
 
-        self._api_key = API_KEY
-        self._api_secret = API_SECRET
+        self._client_token = XPLORA_CLIENT_TOKEN
+        self._client_secret = XPLORA_CLIENT_SECRET
         self._access_token: str | None = None
         self._token_expires_at: float | None = None
         self._issue_token: dict[str, Any] | None = None
@@ -261,8 +263,8 @@ class XploraApi:
 
         w360 = sign_in.get("w360") or {}
         if w360.get("token") and w360.get("secret"):
-            self._api_key = w360["token"]
-            self._api_secret = w360["secret"]
+            self._client_token = w360["token"]
+            self._client_secret = w360["secret"]
 
         user = sign_in.get("user") or {}
         self.account_id = _as_str(user.get("id") or user.get("userId"))
@@ -437,12 +439,15 @@ class XploraApi:
     def _headers(self, *, open_authorization: bool = False) -> dict[str, str]:
         """Build Xplora request headers."""
         if open_authorization or not self._issue_token:
-            authorization = f"Open {API_KEY}:{API_SECRET}"
+            authorization = f"Open {XPLORA_CLIENT_TOKEN}:{XPLORA_CLIENT_SECRET}"
         elif self._issue_token.get("w360"):
             w360 = self._issue_token["w360"]
-            authorization = f"Bearer {w360.get('token', self._api_key)}:{w360.get('secret', self._api_secret)}"
+            authorization = (
+                f"Bearer {w360.get('token', self._client_token)}:"
+                f"{w360.get('secret', self._client_secret)}"
+            )
         else:
-            authorization = f"Bearer {self._access_token}:{self._api_secret}"
+            authorization = f"Bearer {self._access_token}:{self._client_secret}"
 
         return {
             "H-Date": datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT"),
