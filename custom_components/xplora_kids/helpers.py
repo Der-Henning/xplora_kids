@@ -39,3 +39,15 @@ def redacted_hash(value: str | None) -> str | None:
     if not value:
         return None
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
+def stale_watch_macs(
+    previous_watch_macs: dict[str, str],
+    current_watch_macs: dict[str, str],
+) -> dict[str, str]:
+    """Return previously configured MAC addresses no longer used by a watch."""
+    return {
+        watch_id: mac_address
+        for watch_id, mac_address in previous_watch_macs.items()
+        if current_watch_macs.get(watch_id) != mac_address
+    }

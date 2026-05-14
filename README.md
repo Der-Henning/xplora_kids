@@ -61,6 +61,9 @@ After setup, open the integration options:
   Xplora entities with the same device registry device. Reload the integration
   after setting a MAC address; if Home Assistant already created duplicate
   device registry entries, removing the older duplicate device may be necessary.
+  To remove a manually configured MAC address, clear the matching field and
+  save the options. The integration removes the previous Xplora-configured MAC
+  connection from the device registry during the reload.
 
 ## Diagnostics
 

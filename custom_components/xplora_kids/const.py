@@ -16,6 +16,7 @@ PLATFORMS: list[Platform] = [
 
 DATA_API = "api"
 DATA_COORDINATOR = "coordinator"
+DATA_WATCH_MACS = "watch_macs"
 
 CONF_COUNTRY_CODE = "country_code"
 CONF_PHONE_NUMBER = "phone_number"

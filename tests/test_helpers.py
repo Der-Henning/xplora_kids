@@ -42,6 +42,24 @@ class HelpersTest(unittest.TestCase):
         assert len(first) == 12
         assert self.helpers.redacted_hash(None) is None
 
+    def test_stale_watch_macs(self) -> None:
+        """Return MAC addresses that were cleared or replaced."""
+        assert self.helpers.stale_watch_macs(
+            {
+                "unchanged": "aa:bb:cc:dd:ee:01",
+                "replaced": "aa:bb:cc:dd:ee:02",
+                "removed": "aa:bb:cc:dd:ee:03",
+            },
+            {
+                "unchanged": "aa:bb:cc:dd:ee:01",
+                "replaced": "aa:bb:cc:dd:ee:04",
+                "new": "aa:bb:cc:dd:ee:05",
+            },
+        ) == {
+            "replaced": "aa:bb:cc:dd:ee:02",
+            "removed": "aa:bb:cc:dd:ee:03",
+        }
+
 
 if __name__ == "__main__":
     unittest.main()
